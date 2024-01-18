@@ -9,6 +9,7 @@ use hyper::{server::conn::Http, service::Service, Body, Request, Response};
 use log::{debug, error, info};
 use sb_core::conn_sync::ConnSync;
 use sb_workers::context::WorkerRequestMsg;
+use std::convert::Infallible;
 use std::future::Future;
 use std::net::IpAddr;
 use std::net::Ipv4Addr;
@@ -157,8 +158,13 @@ pub struct WorkerEntrypoints {
 pub struct Server {
     ip: Ipv4Addr,
     port: u16,
+    api_port: u16,
     main_worker_req_tx: mpsc::UnboundedSender<WorkerRequestMsg>,
     callback_tx: Option<Sender<ServerCodes>>,
+}
+
+async fn hello(_req: Request<Body>) -> Result<Response<Body>, Infallible> {
+    Ok(Response::new(Body::from("Hello World!")))
 }
 
 impl Server {
@@ -166,6 +172,7 @@ impl Server {
     pub async fn new(
         ip: &str,
         port: u16,
+        api_port: u16,
         main_service_path: String,
         maybe_events_service_path: Option<String>,
         maybe_user_worker_policy: Option<WorkerPoolPolicy>,
@@ -222,6 +229,7 @@ impl Server {
         Ok(Self {
             ip,
             port,
+            api_port,
             main_worker_req_tx,
             callback_tx,
         })
@@ -235,6 +243,12 @@ impl Server {
         if let Some(callback) = self.callback_tx.clone() {
             let _ = callback.send(ServerCodes::Listening).await;
         }
+
+        let api_listener = TcpListener::bind((self.ip, self.api_port)).await?;
+        debug!(
+            "api service is listening on {:?}",
+            api_listener.local_addr()?
+        );
 
         loop {
             let main_worker_req_tx = self.main_worker_req_tx.clone();

@@ -22,6 +22,7 @@ macro_rules! integration_test {
             _ = start_server(
                 "0.0.0.0",
                 $port,
+                0,
                 String::from($main_file),
                 None,
                 None,

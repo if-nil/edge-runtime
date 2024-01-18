@@ -52,6 +52,11 @@ fn cli() -> Command {
                         .default_value("9000")
                         .value_parser(value_parser!(u16)),
                 )
+                .arg(
+                    arg!(-a --"api-port" <PORT> "Port to listen on for API requests")
+                        .default_value("9001")
+                        .value_parser(value_parser!(u16)),
+                )
                 .arg(arg!(--"main-service" <DIR> "Path to main service directory or eszip").default_value("examples/main"))
                 .arg(arg!(--"disable-module-cache" "Disable using module cache").default_value("false").value_parser(FalseyValueParser::new()))
                 .arg(arg!(--"import-map" <Path> "Path to import map file"))
@@ -124,6 +129,7 @@ fn main() -> Result<(), anyhow::Error> {
             Some(("start", sub_matches)) => {
                 let ip = sub_matches.get_one::<String>("ip").cloned().unwrap();
                 let port = sub_matches.get_one::<u16>("port").copied().unwrap();
+                let api_port = sub_matches.get_one::<u16>("api-port").copied().unwrap();
 
                 let main_service_path = sub_matches
                     .get_one::<String>("main-service")
@@ -151,6 +157,7 @@ fn main() -> Result<(), anyhow::Error> {
                 start_server(
                     ip.as_str(),
                     port,
+                    api_port,
                     main_service_path,
                     event_service_manager_path,
                     Some(WorkerPoolPolicy::new(

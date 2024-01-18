@@ -11,6 +11,7 @@ use tokio::sync::mpsc::Sender;
 pub async fn start_server(
     ip: &str,
     port: u16,
+    api_port: u16,
     main_service_path: String,
     event_worker_path: Option<String>,
     user_worker_policy: Option<WorkerPoolPolicy>,
@@ -30,6 +31,7 @@ pub async fn start_server(
     let mut server = Server::new(
         ip,
         port,
+        api_port,
         main_service_path,
         event_worker_path,
         user_worker_policy,
