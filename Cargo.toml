@@ -12,7 +12,8 @@ members = [
   "./crates/npm",
   "./crates/sb_graph",
   "./crates/sb_module_loader",
-  "./crates/sb_fs"
+  "./crates/sb_fs",
+  "./crates/api_server"
 ]
 resolver = "2"
 

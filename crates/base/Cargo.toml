@@ -57,6 +57,7 @@ notify = { version = "6.1.1", default-features = false, features = ["macos_kqueu
 flume = { version = "0.11.0" }
 strum = { version = "0.25.0", features = ["derive"] }
 urlencoding.workspace = true
+api_server = { version = "0.1.0", path = "../api_server" }
 
 [dev-dependencies]
 flaky_test = { version = "0.1.0", path = "../flaky_test" }

@@ -3,6 +3,7 @@ use crate::rt_worker::worker_ctx::{
 };
 use crate::rt_worker::worker_pool::WorkerPoolPolicy;
 use anyhow::Error;
+use api_server::start_api_server;
 use event_worker::events::WorkerEventWithMetadata;
 use futures_util::Stream;
 use hyper::{server::conn::Http, service::Service, Body, Request, Response};
@@ -163,10 +164,6 @@ pub struct Server {
     callback_tx: Option<Sender<ServerCodes>>,
 }
 
-async fn hello(_req: Request<Body>) -> Result<Response<Body>, Infallible> {
-    Ok(Response::new(Body::from("Hello World!")))
-}
-
 impl Server {
     #[allow(clippy::too_many_arguments)]
     pub async fn new(
@@ -249,6 +246,7 @@ impl Server {
             "api service is listening on {:?}",
             api_listener.local_addr()?
         );
+        tokio::spawn(start_api_server(api_listener.into_std().unwrap()));
 
         loop {
             let main_worker_req_tx = self.main_worker_req_tx.clone();
