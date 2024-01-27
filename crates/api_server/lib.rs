@@ -1,28 +1,24 @@
+mod response;
 use std::net::TcpListener;
 
 use axum::{routing::get, Router};
 
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+pub struct ApiServer {
+    listener: TcpListener,
+    router: Router,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+impl ApiServer {
+    pub fn new(listener: TcpListener) -> Self {
+        let router = Router::new().route("/", get(|| async { "Hello, World!" }));
+        Self { listener, router }
     }
-}
 
-pub async fn start_api_server(listener: TcpListener) {
-    let app = Router::new().route("/", get(|| async { "Hello, World!" }));
-
-    axum::Server::from_tcp(listener)
-        .unwrap()
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    pub async fn start(self) {
+        axum::Server::from_tcp(self.listener)
+            .unwrap()
+            .serve(self.router.into_make_service())
+            .await
+            .unwrap();
+    }
 }

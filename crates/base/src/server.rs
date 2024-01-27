@@ -3,14 +3,13 @@ use crate::rt_worker::worker_ctx::{
 };
 use crate::rt_worker::worker_pool::WorkerPoolPolicy;
 use anyhow::Error;
-use api_server::start_api_server;
+use api_server::ApiServer;
 use event_worker::events::WorkerEventWithMetadata;
 use futures_util::Stream;
 use hyper::{server::conn::Http, service::Service, Body, Request, Response};
 use log::{debug, error, info};
 use sb_core::conn_sync::ConnSync;
 use sb_workers::context::WorkerRequestMsg;
-use std::convert::Infallible;
 use std::future::Future;
 use std::net::IpAddr;
 use std::net::Ipv4Addr;
@@ -246,7 +245,11 @@ impl Server {
             "api service is listening on {:?}",
             api_listener.local_addr()?
         );
-        tokio::spawn(start_api_server(api_listener.into_std().unwrap()));
+        tokio::spawn(
+            ApiServer::new(api_listener.into_std().unwrap())
+                .start()
+                .await,
+        );
 
         loop {
             let main_worker_req_tx = self.main_worker_req_tx.clone();
