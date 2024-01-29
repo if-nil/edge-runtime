@@ -248,7 +248,6 @@ impl Server {
         tokio::spawn(
             ApiServer::new(api_listener.into_std().unwrap())
                 .start()
-                .await,
         );
 
         loop {

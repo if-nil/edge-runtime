@@ -1,5 +1,6 @@
-use axum::http::Response as HttpResponse;
-use axum::{http::StatusCode, response::IntoResponse};
+use axum::response::Response as HttpResponse;
+use axum::{http::StatusCode, response::IntoResponse,
+    body::{boxed, Full},};
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -9,24 +10,16 @@ struct Response<T> {
     data: T,
 }
 
-type Body = axum::body::Full<bytes::Bytes>;
-type BodyError = <Self::Body as axum::body::HttpBody>::Error;
-impl<T: Serialize> IntoResponse for Response<T> {
-    fn into_response(self) -> HttpResponse<Self::Body> {
-        let body = match serde_json::to_vec(&self) {
-            Ok(data) => axum::body::full(data),
-            Err(_) => {
-                return HttpResponse::builder()
-                    .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .body(axum::body::empty())
-                    .unwrap()
-            }
-        };
-
+impl<T> IntoResponse for Response<T>
+where
+    T: Serialize,
+{
+    fn into_response(self) -> HttpResponse {
+        let body = serde_json::to_string(&self).unwrap();
         HttpResponse::builder()
             .status(StatusCode::OK)
-            .header("content-type", "application/json")
-            .body(body)
-            .unwrap()
+            .header("Content-Type", "application/json")
+            .body(boxed(Full::from(body)))
+            .unwrap_or_else(|_| panic!("Invalid response"))
     }
 }
