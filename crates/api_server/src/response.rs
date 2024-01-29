@@ -1,13 +1,37 @@
 use axum::response::Response as HttpResponse;
 use axum::{http::StatusCode, response::IntoResponse,
     body::{boxed, Full},};
-use serde::Serialize;
+use serde::{Serialize, Serializer};
 
 #[derive(Serialize)]
-struct Response<T> {
-    code: i32,
+pub(crate)struct Response<T> {
+    code: ResponseCode,
     message: String,
     data: T,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum ResponseCode {
+    Success = 1000,
+}
+
+impl Serialize for ResponseCode {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_i32(*self as i32)
+    }
+}
+
+impl<T> Response<T> {
+    pub(crate)fn success(data: T) -> Self {
+        Self {
+            code: ResponseCode::Success,
+            message: "Success".to_string(),
+            data,
+        }
+    }
 }
 
 impl<T> IntoResponse for Response<T>

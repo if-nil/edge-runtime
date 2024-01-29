@@ -1,3 +1,4 @@
+mod api;
 mod response;
 use std::net::TcpListener;
 
@@ -10,7 +11,7 @@ pub struct ApiServer {
 
 impl ApiServer {
     pub fn new(listener: TcpListener) -> Self {
-        let router = Router::new().route("/", get(|| async { "Hello, World!" }));
+        let router = Router::new().route("/api/files", get(api::files::file_list));
         Self { listener, router }
     }
 
